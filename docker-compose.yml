@@ -94,38 +94,33 @@ networks:
 
 volumes:
   netbox-media-files:
-    driver: local
-    driver_opts:
-      type: none
-      device: /opt/netbox-docker/data/media
-      o: bind
   netbox-postgres:
-    driver: local
-    driver_opts:
-      type: none
-      device: /opt/netbox-docker/data/postgres
-      o: bind
   netbox-redis-cache-data:
-    driver: local
-    driver_opts:
-      type: none
-      device: /opt/netbox-docker/data/redis-cache-data
-      o: bind
   netbox-redis-data:
-    driver: local
-    driver_opts:
-      type: none
-      device: /opt/netbox-docker/data/redis-data
-      o: bind
   netbox-reports-files:
-    driver: local
-    driver_opts:
-      type: none
-      device: /opt/netbox-docker/data/reports
-      o: bind
   netbox-scripts-files:
-    driver: local
-    driver_opts:
-      type: none
-      device: /opt/netbox-docker/data/scripts
-      o: bind
+
+# Y en la sección de servicios, vinculamos las rutas físicas directamente:
+services:
+  netbox:
+    # ... (todo igual)
+    volumes:
+      - ./configuration:/etc/netbox/config:z,ro
+      - /opt/netbox-docker/data/media:/opt/netbox/netbox/media:rw
+      - /opt/netbox-docker/data/reports:/opt/netbox/netbox/reports:rw
+      - /opt/netbox-docker/data/scripts:/opt/netbox/netbox/scripts:rw
+
+  postgres:
+    # ... (todo igual)
+    volumes:
+      - /opt/netbox-docker/data/postgres:/var/lib/postgresql/data
+
+  redis:
+    # ... (todo igual)
+    volumes:
+      - /opt/netbox-docker/data/redis-data:/data
+
+  redis-cache:
+    # ... (todo igual)
+    volumes:
+      - /opt/netbox-docker/data/redis-cache-data:/data
