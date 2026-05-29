@@ -17,12 +17,11 @@ services:
     networks:
       lamp-network:
         ipv4_address: 172.20.0.20
-    # --- VOLÚMENES APUNTANDO A TU RUTA EXACTA ---
     volumes:
-      - /var/lib/docker/volumes/netbox/configuration:/etc/netbox/config:z,ro
-      - /var/lib/docker/volumes/netbox/media:/opt/netbox/netbox/media:rw
-      - /var/lib/docker/volumes/netbox/reports:/opt/netbox/netbox/reports:rw
-      - /var/lib/docker/volumes/netbox/scripts:/opt/netbox/netbox/scripts:rw
+      - ./configuration:/etc/netbox/config:z,ro
+      - netbox-media-files:/opt/netbox/netbox/media:rw
+      - netbox-reports-files:/opt/netbox/netbox/reports:rw
+      - netbox-scripts-files:/opt/netbox/netbox/scripts:rw
 
   netbox-worker:
     <<: *netbox
@@ -44,7 +43,7 @@ services:
 
   # postgres
   postgres:
-    image: docker.io/postgres:16-alpine # <-- VERSIÓN CORREGIDA PARA EVITAR FALLO
+    image: docker.io/postgres:16-alpine
     healthcheck:
       test: pg_isready -q -t 2 -d $$POSTGRES_DB -U $$POSTGRES_USER
       start_period: 20s
@@ -55,15 +54,15 @@ services:
     networks:
       - lamp-network
     volumes:
-      - /var/lib/docker/volumes/netbox/postgres:/var/lib/postgresql
+      - netbox-postgres:/var/lib/postgresql
 
   # redis
   redis:
     image: docker.io/valkey/valkey:9.0-alpine
     command:
       - sh
-      - -c # this is to evaluate the $REDIS_PASSWORD from the env
-      - valkey-server --appendonly yes --requirepass $$REDIS_PASSWORD ## $$ because of docker-compose
+      - -c 
+      - valkey-server --appendonly yes --requirepass $$REDIS_PASSWORD 
     healthcheck: &redis-healthcheck
       test: '[ $$(valkey-cli --pass "$${REDIS_PASSWORD}" ping) = ''PONG'' ]'
       start_period: 5s
@@ -74,22 +73,35 @@ services:
     networks:
       - lamp-network
     volumes:
-      - /var/lib/docker/volumes/netbox/redis:/data
+      - netbox-redis-data:/data
 
   redis-cache:
     image: docker.io/valkey/valkey:9.0-alpine
     command:
       - sh
-      - -c # this is to evaluate the $REDIS_PASSWORD from the env
-      - valkey-server --requirepass $$REDIS_PASSWORD ## $$ because of docker-compose
+      - -c 
+      - valkey-server --requirepass $$REDIS_PASSWORD 
     healthcheck: *redis-healthcheck
     env_file: env/redis-cache.env
     networks:
       - lamp-network
     volumes:
-      - /var/lib/docker/volumes/netbox/redis-cache:/data
+      - netbox-redis-cache-data:/data
 
-# --- DECLARACIÓN DE TU RED EXTERNA ---
 networks:
   lamp-network:
     external: true
+
+volumes:
+  netbox-media-files:
+    driver: local
+  netbox-postgres:
+    driver: local
+  netbox-redis-cache-data:
+    driver: local
+  netbox-redis-data:
+    driver: local
+  netbox-reports-files:
+    driver: local
+  netbox-scripts-files:
+    driver: local
