@@ -19,9 +19,9 @@ services:
         ipv4_address: 172.20.0.20
     volumes:
       - ./configuration:/etc/netbox/config:z,ro
-      - /opt/netbox-docker/data/media:/opt/netbox/netbox/media:rw
-      - /opt/netbox-docker/data/reports:/opt/netbox/netbox/reports:rw
-      - /opt/netbox-docker/data/scripts:/opt/netbox/netbox/scripts:rw
+      - netbox-media-files:/opt/netbox/netbox/media:rw
+      - netbox-reports-files:/opt/netbox/netbox/reports:rw
+      - netbox-scripts-files:/opt/netbox/netbox/scripts:rw
 
   netbox-worker:
     <<: *netbox
@@ -41,6 +41,7 @@ services:
     networks:
       - lamp-network
 
+  # postgres
   postgres:
     image: docker.io/postgres:16-alpine
     healthcheck:
@@ -53,8 +54,9 @@ services:
     networks:
       - lamp-network
     volumes:
-      - /opt/netbox-docker/data/postgres:/var/lib/postgresql/data
+      - netbox-postgres:/var/lib/postgresql
 
+  # redis
   redis:
     image: docker.io/valkey/valkey:9.0-alpine
     command:
@@ -71,7 +73,7 @@ services:
     networks:
       - lamp-network
     volumes:
-      - /opt/netbox-docker/data/redis-data:/data
+      - netbox-redis-data:/data
 
   redis-cache:
     image: docker.io/valkey/valkey:9.0-alpine
@@ -84,17 +86,22 @@ services:
     networks:
       - lamp-network
     volumes:
-      - /opt/netbox-docker/data/redis-cache-data:/data
+      - netbox-redis-cache-data:/data
 
 networks:
   lamp-network:
     external: true
 
 volumes:
-  # Definidos como vacíos porque usamos bind mounts directos en 'services'
   netbox-media-files:
+    driver: local
   netbox-postgres:
+    driver: local
   netbox-redis-cache-data:
+    driver: local
   netbox-redis-data:
+    driver: local
   netbox-reports-files:
+    driver: local
   netbox-scripts-files:
+    driver: local
