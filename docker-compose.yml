@@ -12,18 +12,17 @@ services:
       start_period: 90s
       timeout: 3s
       interval: 15s
-    # --- AQUÍ INICIAN TUS MODIFICACIONES PARA NETBOX ---
     ports:
       - "23100:8080"
     networks:
       lamp-network:
         ipv4_address: 172.20.0.20
-    # --- FIN DE MODIFICACIONES ---
+    # --- VOLÚMENES APUNTANDO A TU RUTA EXACTA ---
     volumes:
-      - ./configuration:/etc/netbox/config:z,ro
-      - netbox-media-files:/opt/netbox/netbox/media:rw
-      - netbox-reports-files:/opt/netbox/netbox/reports:rw
-      - netbox-scripts-files:/opt/netbox/netbox/scripts:rw
+      - /var/lib/docker/volumes/netbox/configuration:/etc/netbox/config:z,ro
+      - /var/lib/docker/volumes/netbox/media:/opt/netbox/netbox/media:rw
+      - /var/lib/docker/volumes/netbox/reports:/opt/netbox/netbox/reports:rw
+      - /var/lib/docker/volumes/netbox/scripts:/opt/netbox/netbox/scripts:rw
 
   netbox-worker:
     <<: *netbox
@@ -39,14 +38,13 @@ services:
       start_period: 20s
       timeout: 3s
       interval: 15s
-    # Sobrescribimos esto para que el worker no robe el puerto ni la IP de la app principal
     ports: []
     networks:
       - lamp-network
 
   # postgres
   postgres:
-    image: docker.io/postgres:18-alpine
+    image: docker.io/postgres:16-alpine # <-- VERSIÓN CORREGIDA PARA EVITAR FALLO
     healthcheck:
       test: pg_isready -q -t 2 -d $$POSTGRES_DB -U $$POSTGRES_USER
       start_period: 20s
@@ -57,7 +55,7 @@ services:
     networks:
       - lamp-network
     volumes:
-      - netbox-postgres:/var/lib/postgresql
+      - /var/lib/docker/volumes/netbox/postgres:/var/lib/postgresql
 
   # redis
   redis:
@@ -76,7 +74,7 @@ services:
     networks:
       - lamp-network
     volumes:
-      - netbox-redis-data:/data
+      - /var/lib/docker/volumes/netbox/redis:/data
 
   redis-cache:
     image: docker.io/valkey/valkey:9.0-alpine
@@ -89,23 +87,9 @@ services:
     networks:
       - lamp-network
     volumes:
-      - netbox-redis-cache-data:/data
+      - /var/lib/docker/volumes/netbox/redis-cache:/data
 
 # --- DECLARACIÓN DE TU RED EXTERNA ---
 networks:
   lamp-network:
     external: true
-
-volumes:
-  netbox-media-files:
-    driver: local
-  netbox-postgres:
-    driver: local
-  netbox-redis-cache-data:
-    driver: local
-  netbox-redis-data:
-    driver: local
-  netbox-reports-files:
-    driver: local
-  netbox-scripts-files:
-    driver: local
