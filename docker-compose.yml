@@ -19,9 +19,9 @@ services:
         ipv4_address: 172.20.0.20
     volumes:
       - ./configuration:/etc/netbox/config:z,ro
-      - netbox-media-files:/opt/netbox/netbox/media:rw
-      - netbox-reports-files:/opt/netbox/netbox/reports:rw
-      - netbox-scripts-files:/opt/netbox/netbox/scripts:rw
+      - /opt/netbox-docker/data/media:/opt/netbox/netbox/media:rw
+      - /opt/netbox-docker/data/reports:/opt/netbox/netbox/reports:rw
+      - /opt/netbox-docker/data/scripts:/opt/netbox/netbox/scripts:rw
 
   netbox-worker:
     <<: *netbox
@@ -41,7 +41,6 @@ services:
     networks:
       - lamp-network
 
-  # postgres
   postgres:
     image: docker.io/postgres:16-alpine
     healthcheck:
@@ -54,9 +53,8 @@ services:
     networks:
       - lamp-network
     volumes:
-      - netbox-postgres:/var/lib/postgresql
+      - /opt/netbox-docker/data/postgres:/var/lib/postgresql/data
 
-  # redis
   redis:
     image: docker.io/valkey/valkey:9.0-alpine
     command:
@@ -73,7 +71,7 @@ services:
     networks:
       - lamp-network
     volumes:
-      - netbox-redis-data:/data
+      - /opt/netbox-docker/data/redis-data:/data
 
   redis-cache:
     image: docker.io/valkey/valkey:9.0-alpine
@@ -86,41 +84,17 @@ services:
     networks:
       - lamp-network
     volumes:
-      - netbox-redis-cache-data:/data
+      - /opt/netbox-docker/data/redis-cache-data:/data
 
 networks:
   lamp-network:
     external: true
 
 volumes:
+  # Definidos como vacíos porque usamos bind mounts directos en 'services'
   netbox-media-files:
   netbox-postgres:
   netbox-redis-cache-data:
   netbox-redis-data:
   netbox-reports-files:
   netbox-scripts-files:
-
-# Y en la sección de servicios, vinculamos las rutas físicas directamente:
-services:
-  netbox:
-    # ... (todo igual)
-    volumes:
-      - ./configuration:/etc/netbox/config:z,ro
-      - /opt/netbox-docker/data/media:/opt/netbox/netbox/media:rw
-      - /opt/netbox-docker/data/reports:/opt/netbox/netbox/reports:rw
-      - /opt/netbox-docker/data/scripts:/opt/netbox/netbox/scripts:rw
-
-  postgres:
-    # ... (todo igual)
-    volumes:
-      - /opt/netbox-docker/data/postgres:/var/lib/postgresql/data
-
-  redis:
-    # ... (todo igual)
-    volumes:
-      - /opt/netbox-docker/data/redis-data:/data
-
-  redis-cache:
-    # ... (todo igual)
-    volumes:
-      - /opt/netbox-docker/data/redis-cache-data:/data
