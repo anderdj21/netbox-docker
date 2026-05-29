@@ -95,13 +95,37 @@ networks:
 volumes:
   netbox-media-files:
     driver: local
+    driver_opts:
+      type: none
+      device: /opt/netbox-docker/data/media
+      o: bind
   netbox-postgres:
     driver: local
+    driver_opts:
+      type: none
+      device: /opt/netbox-docker/data/postgres
+      o: bind
   netbox-redis-cache-data:
     driver: local
+    driver_opts:
+      type: none
+      device: /opt/netbox-docker/data/redis-cache-data
+      o: bind
   netbox-redis-data:
     driver: local
+    driver_opts:
+      type: none
+      device: /opt/netbox-docker/data/redis-data
+      o: bind
   netbox-reports-files:
     driver: local
+    driver_opts:
+      type: none
+      device: /opt/netbox-docker/data/reports
+      o: bind
   netbox-scripts-files:
     driver: local
+    driver_opts:
+      type: none
+      device: /opt/netbox-docker/data/scripts
+      o: bind
